@@ -138,8 +138,11 @@ void CMediaServer::setLoginValidUrl(const std::string & url)
 }
 int CMediaServer::OnRecvLoginMsg(const UdpPacket& msg, const char* buf, int len, const sockaddr* srcAddr){
 	auto it = m_mapForwardTable.find(msg.userId);
-	// if it is the first time userId login || userId's addr changed
-	if (it == m_mapForwardTable.end() || memcmp(&it->second.addr, srcAddr, sizeof(sockaddr)) != 0) {
+	// if it is the first time userId login || ( userId's addr changed && sessionId changed ) 
+	if (it == m_mapForwardTable.end() ||
+		(memcmp(&it->second.addr, srcAddr, sizeof(sockaddr)) != 0&& msg.sessionId != it->second.sessionId )
+		) 
+	{
 		char *ip = inet_ntoa(((sockaddr_in*)srcAddr)->sin_addr);
 		int port = ntohs(((sockaddr_in*)srcAddr)->sin_port);
 		LOGFMTI("receive login,userId:%u,addr:%s:%u\n", msg.userId, ip, port);

@@ -19,6 +19,7 @@ endif()
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/..)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../../3rd/curl/include/curl)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../../3rd/libuv/include)
 #link_directories(${CMAKE_CURRENT_BINARY_DIR}/../)
 link_directories(${CMAKE_CURRENT_LIST_DIR}/../../lib)
 

@@ -5,12 +5,14 @@
 #include "tcp_module.h"
 #include "udp_module.h"
 
+CUVMutex sMutex;
 ClientNetwork* ClientNetwork::s_pInstance = nullptr;
-static CUVMutex sMutex;
-ClientNetwork::ClientNetwork():
-	m_pNetworkChangeCB(nullptr),
-	m_pVoipDataListener(nullptr),
-	m_bInRoom(false)
+
+ClientNetwork::ClientNetwork(Parameter param)
+    : NetworkCenter(param)
+    , m_pNetworkChangeCB(nullptr)
+    , m_pVoipDataListener(nullptr)
+    , m_bInRoom(false)
 {
 
 }
@@ -20,10 +22,12 @@ ClientNetwork::~ClientNetwork()
 	Logout();
 }
 
-int ClientNetwork::Login(const char *IP, uint32_t port, uint32_t userID, uint32_t sessionID)
+int ClientNetwork::Login(uint32_t userID, uint32_t sessionID)
 {
 	Logout();
 	//connect to master server 
+    const char * IP = m_param.serverIP.c_str();
+    uint32_t port = m_param.port;
 	m_nUserId = userID;
 	bool masterServer = 0;
 	std::string realIP;
@@ -60,11 +64,11 @@ int ClientNetwork::Login(const char *IP, uint32_t port, uint32_t userID, uint32_
 		Logout();
 		return false;
 	}
-	//if (!m_pUdpClient->LoginRelayServer()) {
-	//	PRINT_DEBUG("login fail\n");
-	//	Logout();
-	//	return false;
-	//}
+	if (!m_pUdpClient->LoginRelayServer()) {
+		PRINT_DEBUG("login fail\n");
+		Logout();
+		return false;
+	}
 	PRINT_DEBUG("login success\n");
 	return true;
 }
@@ -127,15 +131,20 @@ int ClientNetwork::sendVoipData(char* data, int size)
 	m_pUdpClient->SendMedia(base,size+4);
 	return 0;
 }
+ClientNetwork* ClientNetwork::CreateInstance(Parameter param)
+{
+    if (s_pInstance != nullptr) {
+        return s_pInstance;
+    }
+    sMutex.Lock();
+    s_pInstance = new ClientNetwork(param);
+    sMutex.UnLock();
+    return s_pInstance;
+}
 
 ClientNetwork * ClientNetwork::GetInstance()
 {
-	if (ClientNetwork::s_pInstance == nullptr){
-		CUVAutoLock lock(&sMutex);
-		if (ClientNetwork::s_pInstance == nullptr)
-			ClientNetwork::s_pInstance = new ClientNetwork();
-	}
-	return ClientNetwork::s_pInstance;
+	return s_pInstance;
 }
 
 void ClientNetwork::DestroyInstance()

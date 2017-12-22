@@ -38,10 +38,10 @@ class CLIENT_NETWORK_EXPORT ClientNetwork: public NetworkCenter {
 	virtual int RegisterVoipDataListener(VoipDataListener *voipDataListener);
 	virtual int UnRegisterVoipDataListener(VoipDataListener *voipDataListener);
 
-	ClientNetwork();
+    ClientNetwork(Parameter param);
 public:
 	~ClientNetwork();
-	int Login(const char *IP, uint32_t port, uint32_t userID, uint32_t sessionID);
+	int Login(uint32_t userID, uint32_t sessionID);
 	void AddGroupClientNode(uint32_t targetUserId);
 	void RemoveGroupClientNode(uint32_t targetUserId);
 	void ClearGroupClientList();
@@ -49,6 +49,7 @@ public:
 	void setNetworkChangeCB(NetworkChangeCB pFun);
 	void setP2PTransmit(bool enable);
 	virtual int sendVoipData(char *data, int size);
+    static ClientNetwork* CreateInstance(Parameter param);
 	static ClientNetwork* GetInstance();
 	static void DestroyInstance();
 };
